@@ -1,4 +1,4 @@
-from subprocess import run, PIPE, Popen
+from subprocess import run, PIPE
 
 
 def run_script(commands):
