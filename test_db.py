@@ -87,3 +87,20 @@ def test_print_constants():
         "LEAF_NODE_MAX_CELLS: 13",
         "db > ",
     ]
+
+
+def test_can_print_out_one_node_btree():
+    script = [f"insert {i} user{i} person{i}@example.com" for i in [3, 1, 2]]
+    result = run_script(script + [".btree", ".exit"])
+
+    assert result == [
+        "db > Executed.",
+        "db > Executed.",
+        "db > Executed.",
+        "db > Tree:",
+        "leaf (size 3)",
+        "  - 0 : 3",
+        "  - 1 : 1",
+        "  - 2 : 2",
+        "db > ",
+    ]
