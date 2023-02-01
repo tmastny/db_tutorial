@@ -77,8 +77,8 @@ void serialize_row(Row* source, void* destination) {
 
 void deserialize_row(void* source, Row* destination) {
   memcpy(&(destination->id), source + ID_OFFSET, ID_SIZE);
-  memcpy(&(destination->username), source + EMAIL_OFFSET, EMAIL_SIZE);
-  memcpy(&(destination->email), source + USERNAME_OFFSET, USERNAME_SIZE);
+  memcpy(&(destination->username), source + USERNAME_OFFSET, USERNAME_SIZE);
+  memcpy(&(destination->email), source + EMAIL_OFFSET, EMAIL_SIZE);
 }
 
 void* row_slot(Table* table, uint32_t row_num) {
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
 
     switch (execute_statement(&statement, table)) {
       case (EXECUTE_SUCCESS):
-        printf("Exected.\n");
+        printf("Executed.\n");
         break;
       case (EXECUTE_TABLE_FULL):
         printf("Error: Table full.\n");
