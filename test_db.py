@@ -1,9 +1,15 @@
 from subprocess import run, PIPE
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def delete_db():
+    run(["rm", "-rf", "test.db"])
 
 
 def run_script(commands):
     input = "\n".join(commands + [""]).encode()
-    boutput = run(["./a.out"], input=input, stdout=PIPE).stdout
+    boutput = run(["./a.out", "test.db"], input=input, stdout=PIPE).stdout
     return boutput.decode("utf-8").split("\n")
 
 
@@ -50,14 +56,18 @@ def test_prints_error_message_if_strings_too_long():
 
 
 def test_prints_error_if_id_negative():
-    script = [
-      "insert -1 tim tim@tim.com",
-      "select",
-      ".exit"
-    ]
+    script = ["insert -1 tim tim@tim.com", "select", ".exit"]
     result = run_script(script)
-    assert result == [
-      "db > ID must be positive.",
-      "db > Executed.",
-      "db > "
+    assert result == ["db > ID must be positive.", "db > Executed.", "db > "]
+
+
+def test_keeps_data_after_closing():
+    result1 = run_script(["insert 1 user1 person1@example.com", ".exit"])
+    assert result1 == ["db > Executed.", "db > "]
+
+    result2 = run_script(["select", ".exit"])
+    assert result2 == [
+        "db > (1, user1, person1@example.com)",
+        "Executed.",
+        "db > ",
     ]
