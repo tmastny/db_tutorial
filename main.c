@@ -326,6 +326,7 @@ void create_new_root(Table* table, uint32_t right_child_page_num) {
 
   initialize_internal_node(root);
   set_node_root(root, true);
+
   *internal_node_num_keys(root) = 1;
   *internal_node_child(root, 0) = left_child_page_num;
 
@@ -345,7 +346,7 @@ void leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) {
   initialize_leaf_node(new_node);
 
   // Evenly divide keys between old (left) and new (right) nodes
-  for (uint32_t i = LEAF_NODE_MAX_CELLS; i >= 0 ; i--) {
+  for (int32_t i = LEAF_NODE_MAX_CELLS; i >= 0 ; i--) {
     void* destination_node;
     if (i >= LEAF_NODE_LEFT_SPLIT_COUNT) {
       destination_node = new_node;
@@ -364,8 +365,8 @@ void leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) {
     memcpy(destination, leaf_node_cell(old_node, i), LEAF_NODE_CELL_SIZE);
    }
   }
-  *leaf_node_num_cells(old_node) = LEAF_NODE_LEFT_SPLIT_COUNT;
-  *leaf_node_num_cells(new_node) = LEAF_NODE_RIGHT_SPLIT_COUNT;
+  *(leaf_node_num_cells(old_node)) = LEAF_NODE_LEFT_SPLIT_COUNT;
+  *(leaf_node_num_cells(new_node)) = LEAF_NODE_RIGHT_SPLIT_COUNT;
 
   if (is_node_root(old_node)) {
     return create_new_root(cursor->table, new_page_num);
@@ -382,6 +383,7 @@ void leaf_node_insert(Cursor* cursor, uint32_t key, Row* value) {
   if (num_cells >= LEAF_NODE_MAX_CELLS) {
     // Node full
     leaf_node_split_and_insert(cursor, key, value);
+    return;
  }
 
   if (cursor->cell_num < num_cells) {
@@ -446,7 +448,7 @@ Cursor* table_find(Table* table, uint32_t key) {
   if (get_node_type(root_node) == NODE_LEAF) {
     return leaf_node_find(table, root_page_num, key);
   } else {
-    printf("Need to implement internal nodes.\n");
+    printf("Need to implement searching an internal node\n");
     exit(EXIT_FAILURE);
   }
 }
