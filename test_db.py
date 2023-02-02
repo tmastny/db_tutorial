@@ -27,7 +27,11 @@ def test_inserts_and_retreives_row():
 def test_prints_error_message_when_table_is_full():
     script = [f"insert {i} user{i} person{i}@example.com" for i in range(1, 1402)]
     result = run_script(script + [".exit"])
-    assert "db > Error: Table full." in result
+    assert result[-3:] == [
+        "db > Executed.",
+        "db > Need to implement updating parent after split",
+        ""
+    ]
 
 
 def test_allows_inserting_strings_max_length():
@@ -127,7 +131,7 @@ def test_allows_printing_of_3_leaf_node_btree():
     script = [f"insert {i} user{i} person{i}@example.com" for i in range(1, 15)]
     script.extend([".btree", "insert 15 user15 person15@example.com", ".exit"])
     result = run_script(script)
-    assert result[14:len(result) - 1] == [
+    assert result[14:] == [
         "db > Tree:",
         "- internal (size 1)",
         "  - leaf (size 7)",
@@ -147,7 +151,8 @@ def test_allows_printing_of_3_leaf_node_btree():
         "    - 12",
         "    - 13",
         "    - 14",
-        "db > Need to implement searching an internal node",
+        "db > Executed.",
+        "db > "
     ]
 
 
