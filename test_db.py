@@ -104,3 +104,20 @@ def test_can_print_out_one_node_btree():
         "  - 2 : 2",
         "db > ",
     ]
+
+
+def test_print_error_if_duplicate_id():
+    script = [
+        "insert 1 user1 person1@example.com",
+        "insert 1 user1 person1@example.com",
+        "select",
+        ".exit"
+    ]
+    result = run_script(script)
+    assert result == [
+        "db > Executed.",
+        "db > Error: Duplicate key.",
+        "db > (1, user1, person1@example.com)",
+        "Executed.",
+        "db > ",
+    ]

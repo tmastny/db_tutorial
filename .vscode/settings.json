@@ -2,5 +2,6 @@
   "files.associations": {
     "*.sql": "jinja-sql",
     "__config": "c"
-  }
+  },
+  "python.formatting.provider": "black"
 }
