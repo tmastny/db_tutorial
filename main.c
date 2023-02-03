@@ -739,7 +739,10 @@ Path through code:
     into parent internal node
   - tries to insert pointer to new leaf node into internal
     - if full, has to split internal node
-      -
+      - tries to insert new internal into parent internal
+      - if room, done
+      - else, (recurse: split internal node)
+        - if no parent, `create_new_root` and insert
 */
 
 void leaf_node_insert(Cursor* cursor, uint32_t key, Row* value) {
