@@ -642,8 +642,52 @@ void create_new_root(Table* table, uint32_t right_child_page_num) {
   *node_parent(right_child) = table->root_page_num;
 }
 
-void internal_node_split_and_insert();
+/*
+Path through code:
+- Tries to insert into leaf node
+  - if full, splits leaf node and inserts new leaf node
+    into parent internal node
+  - tries to insert pointer to new leaf node into internal
+    - if full, has to split internal node
+      - tries to insert new internal into parent internal
+      - if room, done
+      - else, (recurse: split internal node)
+        - if no parent, `create_new_root` and insert
+*/
 
+const uint32_t INTERNAL_NODE_RIGHT_SPLIT_COUNT = (INTERNAL_NODE_MAX_CELLS + 1) / 2;
+const uint32_t INTERNAL_NODE_LEFT_SPLIT_COUNT = (INTERNAL_NODE_MAX_CELLS + 1) - INTERNAL_NODE_RIGHT_SPLIT_COUNT;
+
+// todo: internal_node_split for faster insertion
+//   - Note: this is actually hard to do when the max cells are 3,
+//     because after the split the trees are unbalanced
+
+// Note:
+//   - there must be at least two children per node.
+//   - equivalent to one key/child pair with a right child node
+void internal_node_split_and_insert(Pager* pager, void* node, uint32_t index) {
+  if (is_node_root(node)) {
+    // create_new_root()
+  }
+
+  uint32_t new_page_num = get_unused_page_num(pager);
+  void* new_node = get_page(pager, new_page_num);
+  initialize_internal_node(new_node);
+  *node_parent(new_node) = *node_parent(node);
+
+  const uint32_t START = INTERNAL_NODE_MAX_CELLS / 2;
+  for (uint32_t i = START; i < INTERNAL_NODE_MAX_CELLS; i++) {
+    void* destination = internal_node_cell(i - START, new_node);
+    void* source = internal_node_cell(i, node);
+    memcpy(destination, source, INTERNAL_NODE_CELL_SIZE);
+  }
+  *internal_node_right_child(new_node) = *internal_node_right_child(node);
+  *internal_node_right_child(node) = internal_node_child(node, START - 1);
+  *internal_node_num_keys(node) = INTERNAL_NODE_LEFT_SPLIT_COUNT;
+  *internal_node_num_keys(new_node) = INTERNAL_NODE_RIGHT_SPLIT_COUNT;
+
+  return ;
+}
 
 void internal_node_insert(Table* table, uint32_t parent_page_num, uint32_t child_page_num) {
   void* parent = get_page(table->pager, parent_page_num);
@@ -655,9 +699,11 @@ void internal_node_insert(Table* table, uint32_t parent_page_num, uint32_t child
   *internal_node_num_keys(parent) = original_num_keys + 1;
 
   if (original_num_keys >= INTERNAL_NODE_MAX_CELLS) {
-    internal_node_split_and_insert();
+    internal_node_split_and_insert(table->pager, parent, index);
+    return;
   }
-  uint32_t right_child_page_num = *internal_node_right_child(parent);
+  // should this be *?
+  uint32_t right_child_page_num = internal_node_right_child(parent);
   void* right_child = get_page(table->pager, right_child_page_num);
 
   if (child_max_key > get_node_max_key(right_child)) {
@@ -705,6 +751,10 @@ void leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) {
     }
 
     uint32_t index_within_node = i % LEAF_NODE_LEFT_SPLIT_COUNT;
+    // isn't this the wrong index? Should a leaf be filled
+    // from the first index to the last?
+    // Because binary search starts at the 0th index. If that
+    // that stuff is filled with junk, it won't work right.
     void* destination = leaf_node_cell(destination_node, index_within_node);
 
    if (i == cursor->cell_num) {
@@ -731,19 +781,6 @@ void leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) {
     return;
   }
 }
-
-/*
-Path through code:
-- Tries to insert into leaf node
-  - if full, splits leaf node and inserts new leaf node
-    into parent internal node
-  - tries to insert pointer to new leaf node into internal
-    - if full, has to split internal node
-      - tries to insert new internal into parent internal
-      - if room, done
-      - else, (recurse: split internal node)
-        - if no parent, `create_new_root` and insert
-*/
 
 void leaf_node_insert(Cursor* cursor, uint32_t key, Row* value) {
   void* node = get_page(cursor->table->pager, cursor->page_num);
