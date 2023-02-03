@@ -642,6 +642,9 @@ void create_new_root(Table* table, uint32_t right_child_page_num) {
   *node_parent(right_child) = table->root_page_num;
 }
 
+void internal_node_split_and_insert();
+
+
 void internal_node_insert(Table* table, uint32_t parent_page_num, uint32_t child_page_num) {
   void* parent = get_page(table->pager, parent_page_num);
   void* child = get_page(table->pager, child_page_num);
@@ -652,8 +655,7 @@ void internal_node_insert(Table* table, uint32_t parent_page_num, uint32_t child
   *internal_node_num_keys(parent) = original_num_keys + 1;
 
   if (original_num_keys >= INTERNAL_NODE_MAX_CELLS) {
-    printf("Need to implement splitting internal node\n");
-    exit(EXIT_FAILURE);
+    internal_node_split_and_insert();
   }
   uint32_t right_child_page_num = *internal_node_right_child(parent);
   void* right_child = get_page(table->pager, right_child_page_num);
@@ -729,6 +731,16 @@ void leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) {
     return;
   }
 }
+
+/*
+Path through code:
+- Tries to insert into leaf node
+  - if full, splits leaf node and inserts new leaf node
+    into parent internal node
+  - tries to insert pointer to new leaf node into internal
+    - if full, has to split internal node
+      -
+*/
 
 void leaf_node_insert(Cursor* cursor, uint32_t key, Row* value) {
   void* node = get_page(cursor->table->pager, cursor->page_num);
