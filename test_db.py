@@ -30,7 +30,7 @@ def test_prints_error_message_when_table_is_full():
     assert result[-3:] == [
         "db > Executed.",
         "db > Need to implement splitting internal node",
-        ""
+        "",
     ]
 
 
@@ -115,7 +115,7 @@ def test_print_error_if_duplicate_id():
         "insert 1 user1 person1@example.com",
         "insert 1 user1 person1@example.com",
         "select",
-        ".exit"
+        ".exit",
     ]
     result = run_script(script)
     assert result == [
@@ -152,7 +152,7 @@ def test_allows_printing_of_3_leaf_node_btree():
         "    - 13",
         "    - 14",
         "db > Executed.",
-        "db > "
+        "db > ",
     ]
 
 
@@ -179,6 +179,7 @@ def test_prints_all_rows_in_multilevel_tree():
         "Executed.",
         "db > ",
     ]
+
 
 def test_allows_printing_4_leaf_node_btree():
     script = [
