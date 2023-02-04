@@ -796,10 +796,6 @@ void leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) {
     }
 
     uint32_t index_within_node = i % LEAF_NODE_LEFT_SPLIT_COUNT;
-    // isn't this the wrong index? Should a leaf be filled
-    // from the first index to the last?
-    // Because binary search starts at the 0th index. If that
-    // that stuff is filled with junk, it won't work right.
     void* destination = leaf_node_cell(destination_node, index_within_node);
 
    if (i == cursor->cell_num) {
