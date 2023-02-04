@@ -686,7 +686,7 @@ void internal_node_split_and_insert(Pager* pager, void* node, uint32_t child_pag
     *internal_node_right_child(new_node) = child_page_num;
     // old right child node becomes largest element of new right child
     NEW_NODE_COUNT--;
-    *internal_node_child(new_node, NEW_NODE_COUNT) = right_child_page_num;
+    *internal_node_cell(new_node, NEW_NODE_COUNT) = right_child_page_num;
     *internal_node_key(new_node, NEW_NODE_COUNT) = get_node_max_key(right_child);
   } else {
     *internal_node_right_child(new_node) = *internal_node_right_child(node);
@@ -704,8 +704,8 @@ void internal_node_split_and_insert(Pager* pager, void* node, uint32_t child_pag
     void* destination = internal_node_cell(destination_node, index_within_node);
 
     if (i == insert_index) {
-      *internal_node_child(new_node, i) = child_page_num;
-      *internal_node_key(new_node, i) = child_max_key;
+      *internal_node_cell(new_node, index_within_node) = child_page_num;
+      *internal_node_key(new_node, index_within_node) = child_max_key;
     } else if (i > insert_index) {
       memcpy(destination, internal_node_cell(node, i - 1), INTERNAL_NODE_CELL_SIZE);
     } else {
@@ -735,7 +735,7 @@ void internal_node_insert(Table* table, uint32_t parent_page_num, uint32_t child
   *internal_node_num_keys(parent) = original_num_keys + 1;
 
   if (original_num_keys >= INTERNAL_NODE_MAX_CELLS) {
-    internal_node_split_and_insert(table->pager, parent, index);
+    internal_node_split_and_insert(table->pager, parent, child_page_num);
     return;
   }
   // should this be *?
