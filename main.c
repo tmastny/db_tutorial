@@ -669,11 +669,11 @@ void internal_node_split_and_insert(Pager* pager, void* node, uint32_t child_pag
   // by the *search* property of b-trees, we know that the node to be inserted
   // is less than a key on this node OR the parent key pointing to this node
   void* child = get_page(pager, child_page_num);
-  void* child_max_key = get_node_max_key(child);
+  uint32_t child_max_key = get_node_max_key(child);
   uint32_t insert_index = internal_node_find_child(node, child_max_key);
 
   // should this be *?
-  uint32_t right_child_page_num = internal_node_right_child(node);
+  uint32_t right_child_page_num = *internal_node_right_child(node);
   void* right_child = get_page(pager, right_child_page_num);
 
   const int NUM_CHILDREN = INTERNAL_NODE_MAX_CELLS + 2;
@@ -689,7 +689,7 @@ void internal_node_split_and_insert(Pager* pager, void* node, uint32_t child_pag
     *internal_node_child(new_node, NEW_NODE_COUNT) = right_child_page_num;
     *internal_node_key(new_node, NEW_NODE_COUNT) = get_node_max_key(right_child);
   } else {
-    *internal_node_right_child(new_node) = internal_node_right_child(node);
+    *internal_node_right_child(new_node) = *internal_node_right_child(node);
   }
 
   for (int32_t i = NUM_CHILD_AFTER_RIGHTS; i >= 0; i--) {
@@ -739,7 +739,7 @@ void internal_node_insert(Table* table, uint32_t parent_page_num, uint32_t child
     return;
   }
   // should this be *?
-  uint32_t right_child_page_num = internal_node_right_child(parent);
+  uint32_t right_child_page_num = *internal_node_right_child(parent);
   void* right_child = get_page(table->pager, right_child_page_num);
 
   if (child_max_key > get_node_max_key(right_child)) {

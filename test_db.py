@@ -219,6 +219,6 @@ def test_allows_printing_4_leaf_node_btree():
 
 
 if __name__ == "__main__":
-    # script = [f"insert {i} user{i} person{i}@example.com" for i in range(1, 16)]
-    # run_script(script + [".exit"])
-    test_allows_printing_4_leaf_node_btree()
+    script = [f"insert {i} user{i} person{i}@example.com" for i in range(1, 35)]
+    run_script(script + [".exit"])
+    #test_allows_printing_4_leaf_node_btree()
