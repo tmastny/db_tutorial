@@ -726,6 +726,7 @@ void leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) {
 
     // this doesn't work if you are splitting a leaf node that's the
     // right_child_node of the parent
+    // Maybe abort update if the index is greater than the INTERNAL_NODE_MAX_CELLS?
     update_internal_node_key(parent, old_max, new_max);
     internal_node_insert(cursor->table, parent_page_num, new_page_num);
     return;
