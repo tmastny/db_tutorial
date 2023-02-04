@@ -658,80 +658,67 @@ Path through code:
 const uint32_t INTERNAL_NODE_RIGHT_SPLIT_COUNT = (INTERNAL_NODE_MAX_CELLS + 1) / 2;
 const uint32_t INTERNAL_NODE_LEFT_SPLIT_COUNT = (INTERNAL_NODE_MAX_CELLS + 1) - INTERNAL_NODE_RIGHT_SPLIT_COUNT;
 
-  // Nice link: https://www.cs.cornell.edu/courses/cs3110/2012sp/recitations/rec25-B-trees/rec25.html
-
-  // The split depends on the key to be inserted
-  // 0 1 2 3 4        |
-  // 2 4 6 8 10       |  2 4 6 8 10
-  //    ^5            |       ^7
-  // 2 4 5, 6 8 10    |  2 4 6, 7 8 10
-
-  // If we did a basic split first:
-  // 2 4 6, 8 10
-
-
-// todo: internal_node_split for faster insertion
-//   - Note: this is actually hard to do when the max cells are 3,
-//     because after the split the trees are unbalanced
-
 // Note:
 //   - there must be at least two children per node.
 //   - equivalent to one key/child pair with a right child node
 void internal_node_split_and_insert(Pager* pager, void* node, uint32_t child_page_num) {
+  uint32_t new_page_num = get_unused_page_num(pager);
+  void* new_node = get_page(pager, new_page_num);
+  initialize_internal_node(new_node);
+
   // by the *search* property of b-trees, we know that the node to be inserted
   // is less than a key on this node OR the parent key pointing to this node
   void* child = get_page(pager, child_page_num);
   void* child_max_key = get_node_max_key(child);
-  if (is_node_root(node)) {
-    // create_new_root()
-  }
+  // should this be *?
+  uint32_t right_child_page_num = internal_node_right_child(node);
+  void* right_child = get_page(pager, right_child_page_num);
 
-
-  uint32_t new_page_num = get_unused_page_num(pager);
-  void* new_node = get_page(pager, new_page_num);
-  initialize_internal_node(new_node);
-  *node_parent(new_node) = *node_parent(node);
-
-  if (child_max_key > get_node_max_key(node)) {
-    // child pointer becomes new node's `internal_node_right_child`
+  const int NUM_CHILDREN = INTERNAL_NODE_MAX_CELLS + 2;
+  const int NUM_CHILD_AFTER_RIGHTS = NUM_CHILDREN - 2;
+  int NEW_NODE_COUNT = NUM_CHILD_AFTER_RIGHTS / 2 + 1;
+  const int OLD_NODE_COUNT = NUM_CHILD_AFTER_RIGHTS - NEW_NODE_COUNT;
+  if (child_max_key > get_node_max_key(right_child)) {
     *internal_node_right_child(new_node) = child_page_num;
+    // old right child node becomes largest element of new right child
+    NEW_NODE_COUNT--;
+    *internal_node_child(new_node, NEW_NODE_COUNT) = right_child_page_num;
+    *internal_node_key(new_node, NEW_NODE_COUNT) = get_node_max_key(right_child);
+  } else {
+    *internal_node_right_child(new_node) = internal_node_right_child(node);
   }
 
-  const uint32_t START = INTERNAL_NODE_MAX_CELLS / 2;
-  for (uint32_t i = START; i < INTERNAL_NODE_MAX_CELLS; i++) {
-    void* destination = internal_node_cell(i - START, new_node);
-    void* source = internal_node_cell(i, node);
-    memcpy(destination, source, INTERNAL_NODE_CELL_SIZE);
-  }
-  *internal_node_right_child(new_node) = *internal_node_right_child(node);
-  *internal_node_right_child(node) = internal_node_child(node, START - 1);
-  *internal_node_num_keys(node) = INTERNAL_NODE_LEFT_SPLIT_COUNT;
-  *internal_node_num_keys(new_node) = INTERNAL_NODE_RIGHT_SPLIT_COUNT;
-
-  uint32_t index = 10;
-  for (int i = 0; i < index; i++) {
-
-  }
-
-
-  // 2 4 6 8 10
-  //    ^5
-
-  for (int i = 0; i < INTERNAL_NODE_MAX_CELLS; i++) {
+  for (int32_t i = NUM_CHILD_AFTER_RIGHTS; i >= 0; i--) {
     void* destination_node;
-    if (i >= INTERNAL_NODE_LEFT_SPLIT_COUNT) {
+    if (i >= OLD_NODE_COUNT) {
       destination_node = new_node;
     } else {
       destination_node = node;
     }
 
+    uint32_t index_within_node = i % OLD_NODE_COUNT;
+    void* destination = internal_node_cell(destination_node, index_within_node);
 
-
-
+    // need to update this, see insert function
+    uint32_t insert_index = 0;
+    if (i == insert_index) {
+    } else if (i > insert_index) {
+      memcpy(destination, internal_node_cell(node, i - 1), INTERNAL_NODE_CELL_SIZE);
+    } else {
+      memcpy(destination, internal_node_cell(node, i), INTERNAL_NODE_CELL_SIZE);
+    }
   }
 
+  *internal_node_right_child(node) = *internal_node_child(node, OLD_NODE_COUNT - 1);
 
-  return ;
+  *internal_node_num_keys(node) = OLD_NODE_COUNT - 1;
+  *internal_node_num_keys(new_node) = NEW_NODE_COUNT - 1;
+
+  if (is_node_root(node)) {
+    // create_new_root()
+  } else {
+    // insert node to parent
+  }
 }
 
 void internal_node_insert(Table* table, uint32_t parent_page_num, uint32_t child_page_num) {
@@ -787,7 +774,7 @@ void leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) {
   *leaf_node_next_leaf(old_node) = new_page_num;
 
   // Evenly divide keys between old (left) and new (right) nodes
-  for (int32_t i = LEAF_NODE_MAX_CELLS; i >= 0 ; i--) {
+  for (int32_t i = LEAF_NODE_MAX_CELLS; i >= 0; i--) {
     void* destination_node;
     if (i >= LEAF_NODE_LEFT_SPLIT_COUNT) {
       destination_node = new_node;
