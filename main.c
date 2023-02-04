@@ -658,6 +658,18 @@ Path through code:
 const uint32_t INTERNAL_NODE_RIGHT_SPLIT_COUNT = (INTERNAL_NODE_MAX_CELLS + 1) / 2;
 const uint32_t INTERNAL_NODE_LEFT_SPLIT_COUNT = (INTERNAL_NODE_MAX_CELLS + 1) - INTERNAL_NODE_RIGHT_SPLIT_COUNT;
 
+  // Nice link: https://www.cs.cornell.edu/courses/cs3110/2012sp/recitations/rec25-B-trees/rec25.html
+
+  // The split depends on the key to be inserted
+  // 0 1 2 3 4        |
+  // 2 4 6 8 10       |  2 4 6 8 10
+  //    ^5            |       ^7
+  // 2 4 5, 6 8 10    |  2 4 6, 7 8 10
+
+  // If we did a basic split first:
+  // 2 4 6, 8 10
+
+
 // todo: internal_node_split for faster insertion
 //   - Note: this is actually hard to do when the max cells are 3,
 //     because after the split the trees are unbalanced
@@ -665,15 +677,25 @@ const uint32_t INTERNAL_NODE_LEFT_SPLIT_COUNT = (INTERNAL_NODE_MAX_CELLS + 1) - 
 // Note:
 //   - there must be at least two children per node.
 //   - equivalent to one key/child pair with a right child node
-void internal_node_split_and_insert(Pager* pager, void* node, uint32_t index) {
+void internal_node_split_and_insert(Pager* pager, void* node, uint32_t child_page_num) {
+  // by the *search* property of b-trees, we know that the node to be inserted
+  // is less than a key on this node OR the parent key pointing to this node
+  void* child = get_page(pager, child_page_num);
+  void* child_max_key = get_node_max_key(child);
   if (is_node_root(node)) {
     // create_new_root()
   }
+
 
   uint32_t new_page_num = get_unused_page_num(pager);
   void* new_node = get_page(pager, new_page_num);
   initialize_internal_node(new_node);
   *node_parent(new_node) = *node_parent(node);
+
+  if (child_max_key > get_node_max_key(node)) {
+    // child pointer becomes new node's `internal_node_right_child`
+    *internal_node_right_child(new_node) = child_page_num;
+  }
 
   const uint32_t START = INTERNAL_NODE_MAX_CELLS / 2;
   for (uint32_t i = START; i < INTERNAL_NODE_MAX_CELLS; i++) {
@@ -685,6 +707,29 @@ void internal_node_split_and_insert(Pager* pager, void* node, uint32_t index) {
   *internal_node_right_child(node) = internal_node_child(node, START - 1);
   *internal_node_num_keys(node) = INTERNAL_NODE_LEFT_SPLIT_COUNT;
   *internal_node_num_keys(new_node) = INTERNAL_NODE_RIGHT_SPLIT_COUNT;
+
+  uint32_t index = 10;
+  for (int i = 0; i < index; i++) {
+
+  }
+
+
+  // 2 4 6 8 10
+  //    ^5
+
+  for (int i = 0; i < INTERNAL_NODE_MAX_CELLS; i++) {
+    void* destination_node;
+    if (i >= INTERNAL_NODE_LEFT_SPLIT_COUNT) {
+      destination_node = new_node;
+    } else {
+      destination_node = node;
+    }
+
+
+
+
+  }
+
 
   return ;
 }
