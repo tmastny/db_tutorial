@@ -670,6 +670,8 @@ void internal_node_split_and_insert(Pager* pager, void* node, uint32_t child_pag
   // is less than a key on this node OR the parent key pointing to this node
   void* child = get_page(pager, child_page_num);
   void* child_max_key = get_node_max_key(child);
+  uint32_t insert_index = internal_node_find_child(node, child_max_key);
+
   // should this be *?
   uint32_t right_child_page_num = internal_node_right_child(node);
   void* right_child = get_page(pager, right_child_page_num);
@@ -678,6 +680,8 @@ void internal_node_split_and_insert(Pager* pager, void* node, uint32_t child_pag
   const int NUM_CHILD_AFTER_RIGHTS = NUM_CHILDREN - 2;
   int NEW_NODE_COUNT = NUM_CHILD_AFTER_RIGHTS / 2 + 1;
   const int OLD_NODE_COUNT = NUM_CHILD_AFTER_RIGHTS - NEW_NODE_COUNT;
+
+  // handle right children first, since we can't iterate over them
   if (child_max_key > get_node_max_key(right_child)) {
     *internal_node_right_child(new_node) = child_page_num;
     // old right child node becomes largest element of new right child
@@ -699,9 +703,9 @@ void internal_node_split_and_insert(Pager* pager, void* node, uint32_t child_pag
     uint32_t index_within_node = i % OLD_NODE_COUNT;
     void* destination = internal_node_cell(destination_node, index_within_node);
 
-    // need to update this, see insert function
-    uint32_t insert_index = 0;
     if (i == insert_index) {
+      *internal_node_child(new_node, i) = child_page_num;
+      *internal_node_key(new_node, i) = child_max_key;
     } else if (i > insert_index) {
       memcpy(destination, internal_node_cell(node, i - 1), INTERNAL_NODE_CELL_SIZE);
     } else {
@@ -715,7 +719,7 @@ void internal_node_split_and_insert(Pager* pager, void* node, uint32_t child_pag
   *internal_node_num_keys(new_node) = NEW_NODE_COUNT - 1;
 
   if (is_node_root(node)) {
-    // create_new_root()
+    // create_new_root() and insert
   } else {
     // insert node to parent
   }
