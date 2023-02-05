@@ -676,10 +676,9 @@ void internal_node_split_and_insert(Pager* pager, void* node, uint32_t child_pag
   uint32_t right_child_page_num = *internal_node_right_child(node);
   void* right_child = get_page(pager, right_child_page_num);
 
-  const int NUM_CHILDREN = INTERNAL_NODE_MAX_CELLS + 2;
-  const int NUM_CHILD_AFTER_RIGHTS = NUM_CHILDREN - 2;
-  int NEW_NODE_COUNT = NUM_CHILD_AFTER_RIGHTS / 2 + 1;
-  const int OLD_NODE_COUNT = NUM_CHILD_AFTER_RIGHTS - NEW_NODE_COUNT;
+  int NUM_CHILDREN = INTERNAL_NODE_MAX_CELLS + 1;
+  int NEW_NODE_COUNT = NUM_CHILDREN / 2;
+  const int OLD_NODE_COUNT = NUM_CHILDREN - NEW_NODE_COUNT;
 
   // handle right children first, since we can't iterate over them
   if (child_max_key > get_node_max_key(right_child)) {
@@ -692,7 +691,13 @@ void internal_node_split_and_insert(Pager* pager, void* node, uint32_t child_pag
     *internal_node_right_child(new_node) = *internal_node_right_child(node);
   }
 
-  for (int32_t i = NUM_CHILD_AFTER_RIGHTS; i >= 0; i--) {
+//  for (int32_t i = NUM_CHILD_AFTER_RIGHTS; i > OLD_NODE_COUNT; i--) {
+//    uint32_t index_within_node = i % OLD_NODE_COUNT;
+//    memcpy(internal_node_cell(new_node, index_within_node), internal_node_cell(node, i), INTERNAL_NODE_CELL_SIZE);
+//  }
+
+  NUM_CHILDREN = NEW_NODE_COUNT + OLD_NODE_COUNT;
+  for (int32_t i = NUM_CHILDREN - 1; i >= 0; i--) {
     void* destination_node;
     if (i >= OLD_NODE_COUNT) {
       destination_node = new_node;
