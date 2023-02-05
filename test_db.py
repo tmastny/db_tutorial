@@ -1,3 +1,4 @@
+from pprint import pprint
 from subprocess import run, PIPE
 import pytest
 
@@ -213,12 +214,108 @@ def test_allows_printing_4_leaf_node_btree():
         "insert 24 user24 person24@example.com",
         "insert 25 user25 person25@example.com",
         "insert 28 user28 person28@example.com",
+        ".btree",
         ".exit",
     ]
-    return run_script(script)
+    result = run_script(script)
+    assert result[31:] == [
+        "- internal (size 3)",
+        "  - leaf (size 7)",
+        "    - 1",
+        "    - 2",
+        "    - 3",
+        "    - 4",
+        "    - 5",
+        "    - 6",
+        "    - 7",
+        "  - key 7",
+        "  - leaf (size 8)",
+        "    - 8",
+        "    - 9",
+        "    - 10",
+        "    - 11",
+        "    - 12",
+        "    - 13",
+        "    - 14",
+        "    - 15",
+        "  - key 15",
+        "  - leaf (size 7)",
+        "    - 16",
+        "    - 17",
+        "    - 18",
+        "    - 19",
+        "    - 20",
+        "    - 21",
+        "    - 22",
+        "  - key 22",
+        "  - leaf (size 8)",
+        "    - 23",
+        "    - 24",
+        "    - 25",
+        "    - 26",
+        "    - 27",
+        "    - 28",
+        "    - 29",
+        "    - 30",
+        "db > ",
+    ]
+
+def test_split_internal_node_with_insert_in_right_child():
+    script = [f"insert {i} user{i} person{i}@example.com" for i in range(1, 36)]
+    script.extend([".btree", ".exit"])
+    result = run_script(script)
+    assert result[36:] == [
+        '- internal (size 1)',
+        '  - internal (size 1)',
+        '    - leaf (size 7)',
+        '      - 1',
+        '      - 2',
+        '      - 3',
+        '      - 4',
+        '      - 5',
+        '      - 6',
+        '      - 7',
+        '    - key 7',
+        '    - leaf (size 7)',
+        '      - 8',
+        '      - 9',
+        '      - 10',
+        '      - 11',
+        '      - 12',
+        '      - 13',
+        '      - 14',
+        '  - key 14',
+        '  - internal (size 2)',
+        '    - leaf (size 7)',
+        '      - 15',
+        '      - 16',
+        '      - 17',
+        '      - 18',
+        '      - 19',
+        '      - 20',
+        '      - 21',
+        '    - key 21',
+        '    - leaf (size 7)',
+        '      - 22',
+        '      - 23',
+        '      - 24',
+        '      - 25',
+        '      - 26',
+        '      - 27',
+        '      - 28',
+        '    - key 28',
+        '    - leaf (size 7)',
+        '      - 29',
+        '      - 30',
+        '      - 31',
+        '      - 32',
+        '      - 33',
+        '      - 34',
+        '      - 35',
+        'db > '
+    ]
 
 
 if __name__ == "__main__":
     script = [f"insert {i} user{i} person{i}@example.com" for i in range(1, 35)]
     run_script(script + [".exit"])
-    #test_allows_printing_4_leaf_node_btree()
