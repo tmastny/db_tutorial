@@ -1,3 +1,4 @@
+from itertools import chain
 from pprint import pprint
 from subprocess import run, PIPE
 import pytest
@@ -313,6 +314,63 @@ def test_split_internal_node_with_insert_in_right_child():
         "      - 33",
         "      - 34",
         "      - 35",
+        "db > ",
+    ]
+
+
+def test_split_internal_node_with_insert_in_middle_child():
+    ids = chain(range(1, 8), range(28, 35), range(101, 115), range(8, 15))
+    script = [f"insert {i} user{i} person{i}@example.com" for i in ids]
+    script.extend([".btree", ".exit"])
+    result = run_script(script)
+    assert result[-48:] == [
+        "- internal (size 1)",
+        "  - internal (size 1)",
+        "    - leaf (size 7)",
+        "      - 1",
+        "      - 2",
+        "      - 3",
+        "      - 4",
+        "      - 5",
+        "      - 6",
+        "      - 7",
+        "    - key 7",
+        "    - leaf (size 7)",
+        "      - 8",
+        "      - 9",
+        "      - 10",
+        "      - 11",
+        "      - 12",
+        "      - 13",
+        "      - 14",
+        "  - key 14",
+        "  - internal (size 2)",
+        "    - leaf (size 7)",
+        "      - 28",
+        "      - 29",
+        "      - 30",
+        "      - 31",
+        "      - 32",
+        "      - 33",
+        "      - 34",
+        "    - key 34",
+        "    - leaf (size 7)",
+        "      - 101",
+        "      - 102",
+        "      - 103",
+        "      - 104",
+        "      - 105",
+        "      - 106",
+        "      - 107",
+        "    - key 107",
+        "    - leaf (size 7)",
+        "      - 108",
+        "      - 109",
+        "      - 110",
+        "      - 111",
+        "      - 112",
+        "      - 113",
+        "      - 114",
         "db > ",
     ]
 
