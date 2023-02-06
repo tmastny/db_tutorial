@@ -702,12 +702,12 @@ void internal_node_split_and_insert(Table* table, uint32_t node_page_num, uint32
   int children_remaining = NUM_CHILDREN;
 
   // handle right children first, since we can't iterate over them
-  if (child_max_key > get_child_max_key(table->pager, right_child)) {
+  if (child_max_key > get_children_max_key(table->pager, right_child)) {
     *internal_node_right_child(new_node) = child_page_num;
     // old right child node becomes largest element of new right child
     children_remaining--;
     *internal_node_cell(new_node, NEW_NODE_COUNT - 1) = right_child_page_num;
-    *internal_node_key(new_node, NEW_NODE_COUNT - 1) = get_child_max_key(table->pager, right_child);
+    *internal_node_key(new_node, NEW_NODE_COUNT - 1) = get_children_max_key(table->pager, right_child);
   } else {
     *internal_node_right_child(new_node) = *internal_node_right_child(node);
   }
@@ -749,7 +749,7 @@ void internal_node_split_and_insert(Table* table, uint32_t node_page_num, uint32
 void internal_node_insert(Table* table, uint32_t parent_page_num, uint32_t child_page_num) {
   void* parent = get_page(table->pager, parent_page_num);
   void* child = get_page(table->pager, child_page_num);
-  uint32_t child_max_key = get_child_max_key(table->pager, child);
+  uint32_t child_max_key = get_children_max_key(table->pager, child);
   uint32_t index = internal_node_find_child(parent, child_max_key);
 
   uint32_t original_num_keys = *internal_node_num_keys(parent);
@@ -763,9 +763,9 @@ void internal_node_insert(Table* table, uint32_t parent_page_num, uint32_t child
   uint32_t right_child_page_num = *internal_node_right_child(parent);
   void* right_child = get_page(table->pager, right_child_page_num);
 
-  if (child_max_key > get_child_max_key(table->pager, right_child)) {
+  if (child_max_key > get_children_max_key(table->pager, right_child)) {
     *internal_node_child(parent, original_num_keys) = right_child_page_num;
-    *internal_node_key(parent, original_num_keys) = get_child_max_key(table->pager, right_child);
+    *internal_node_key(parent, original_num_keys) = get_children_max_key(table->pager, right_child);
     *internal_node_right_child(parent) = child_page_num;
   } else {
     for (uint32_t i = original_num_keys; i > index; i--) {
