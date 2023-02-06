@@ -318,6 +318,12 @@ def test_split_internal_node_with_insert_in_right_child():
     ]
 
 
+# Reminder: 
+#   Each level of indentation is a node. So the `(size X)`
+#   is the number of keys on that node. So the following result
+#   reads: "Internal of size 1, key 14. Then the left node is
+#   internal of size one key 7. And right nw is internal size two,
+#   with keys 34 and 107."
 def test_split_internal_node_with_insert_in_middle_child():
     ids = chain(range(1, 8), range(28, 35), range(101, 115), range(8, 15))
     script = [f"insert {i} user{i} person{i}@example.com" for i in ids]
@@ -378,7 +384,14 @@ def test_split_internal_node_with_insert_in_middle_child():
 # TODO: fix for next time. I think the `else`-branch of the root split
 #       for internal nodes is not working properly
 # Failing: node filling up new internal nodes
-def test_btree_prints_5_leaf_tree():
+
+# Root cause: 
+#   When the fourth leaf is `split`, the new fifth leaf is insert
+#   directly into the root note. But the current node is not full:
+#   it has space for one more key. The problem is that we are inserting
+#   directly into the parent node, without checking if it can fit
+#   into the current node.
+def test_btree_prints_6_leaf_tree():
     script = [f"insert {i} user{i} person{i}@example.com" for i in range(1, 43)]
     script.extend([".btree", ".exit"])
     result = run_script(script)
@@ -394,5 +407,5 @@ def test_btree_of_height_3():
 
 
 if __name__ == "__main__":
-    script = [f"insert {i} user{i} person{i}@example.com" for i in range(1, 35)]
+    script = [f"insert {i} user{i} person{i}@example.com" for i in range(1, 42)]
     run_script(script + [".exit"])

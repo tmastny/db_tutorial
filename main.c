@@ -738,6 +738,9 @@ void internal_node_split_and_insert(Table* table, uint32_t node_page_num, uint32
   *internal_node_num_keys(node) = OLD_NODE_COUNT - 1;
   *internal_node_num_keys(new_node) = NEW_NODE_COUNT;
 
+  // Note: because the internal node split, we know that the 
+  // the current node is full so we must insert in parent or 
+  // create new root.
   if (is_node_root(node)) {
     create_new_root(table, new_page_num);
   } else {
@@ -829,6 +832,8 @@ void leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) {
     uint32_t new_max = get_node_max_key(old_node);
     void* parent = get_page(cursor->table->pager, parent_page_num);
 
+    // this function doesn't make sense when the parent node is not a root
+    // and when the `new_max` is the right_child
     update_internal_node_key(parent, old_max, new_max);
     internal_node_insert(cursor->table, parent_page_num, new_page_num);
     return;
