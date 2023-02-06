@@ -375,11 +375,22 @@ def test_split_internal_node_with_insert_in_middle_child():
     ]
 
 
+# TODO: fix for next time. I think the `else`-branch of the root split
+#       for internal nodes is not working properly
+# Failing: node filling up new internal nodes
+def test_btree_prints_5_leaf_tree():
+    script = [f"insert {i} user{i} person{i}@example.com" for i in range(1, 43)]
+    script.extend([".btree", ".exit"])
+    result = run_script(script)
+    pprint(result[43:])
+
+# TODO: after fix above
+# Failing: node filling up new internal nodes
 def test_btree_of_height_3():
     script = [f"insert {i} user{i} person{i}@example.com" for i in range(1, 71)]
     script.extend([".btree", ".exit"])
     result = run_script(script)
-    pprint(result[70:])
+    # pprint(result[70:])
 
 
 if __name__ == "__main__":
