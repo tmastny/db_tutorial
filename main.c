@@ -742,9 +742,14 @@ void internal_node_split_and_insert(Table* table, uint32_t node_page_num, uint32
   // the current node is full so we must insert in parent or 
   // create new root.
   if (is_node_root(node)) {
+    // TODO(bug):
+    //   Something is messing up with parents.
+    //   I think the problem is that the parents aren't being
+    //   set to the new root (or are still defind to all root)
     create_new_root(table, new_page_num);
   } else {
     uint32_t parent_page_num = *node_parent(node);
+    *node_parent(new_node) = parent_page_num;
     internal_node_insert(table, parent_page_num, new_page_num);
   }
 }
@@ -762,7 +767,7 @@ void internal_node_insert(Table* table, uint32_t parent_page_num, uint32_t child
     internal_node_split_and_insert(table, parent_page_num, child_page_num);
     return;
   }
-  // should this be *?
+
   uint32_t right_child_page_num = *internal_node_right_child(parent);
   void* right_child = get_page(table->pager, right_child_page_num);
 
@@ -832,6 +837,7 @@ void leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) {
     uint32_t new_max = get_node_max_key(old_node);
     void* parent = get_page(cursor->table->pager, parent_page_num);
 
+    // TODO:
     // this function doesn't make sense when the parent node is not a root
     // and when the `new_max` is the right_child
     update_internal_node_key(parent, old_max, new_max);

@@ -407,5 +407,5 @@ def test_btree_of_height_3():
 
 
 if __name__ == "__main__":
-    script = [f"insert {i} user{i} person{i}@example.com" for i in range(1, 42)]
+    script = [f"insert {i} user{i} person{i}@example.com" for i in range(1, 35)]
     run_script(script + [".exit"])
